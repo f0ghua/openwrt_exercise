@@ -1,0 +1,42 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /usr/share/libubox/jshn.sh
+
+main() 
+{
+    case "$1" in
+    list)
+        json_init
+        json_add_object "read"
+        json_close_object
+        json_add_object "write"
+        json_add_string "date" "x"
+        json_close_object
+        json_dump
+        ;;
+    call)
+        case "$2" in
+        read)
+            date=$(date '+%Y-%m-%d %H:%M:%S')
+            echo "{\"date\": \"$date\"}"
+            ;;
+        write)
+            # read json object
+            read input
+            json_load "$input"
+            json_get_var date date
+
+            date -s "$date" >/dev/null 2>&1 || ret = 1
+            if (ret == 1); then
+                echo '{"success": false, "error": "Date parameter missing"}'
+            else
+                echo '{"success": true}'
+            fi
+            ;;
+        esac
+        ;;
+    esac
+}
+
+main "$@"
